@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import configparser
 import os
 import shutil
 import sqlite3
@@ -99,32 +100,62 @@ class Metadata:
 
 class Bookshelf:
     def __init__(self):
-        # Open database or create one if there is none.
-        # home_directory = os.path.expanduser("~")
-        resources_directory = os.environ.get("PARA_RESOURCES")
-        self.root_dir = f"{resources_directory}/bookshelf"
-
-        self.conn = sqlite3.connect(f"{self.root_dir}/_database.db")
-        self.cursor = self.conn.cursor()
-
-        self.table_name = "documents"
-        self.cursor.execute(f"""CREATE TABLE IF NOT EXISTS {self.table_name} 
-        (id TEXT PRIMARY KEY, filename TEXT, title TEXT, authors TEXT,
-        category TEXT, keywords TEXT, description TEXT)""")
-        self.conn.commit()
-
-        self.inbox_dir = "inbox"
-        mkdir(f"{self.root_dir}/{self.inbox_dir}")
-
+        # Configuration
         self.icon_keyboard = "\uf11c"
 
         self.icon_info = "\uf02d"
         self.icon_warn = "\uea6c"
         self.icon_err = "\uea87"
 
+        # First, go with default settings.
+        home_directory = os.path.expanduser("~")
+
+        config = configparser.ConfigParser()
+        config["settings"] = {
+            "root_directory": f"{home_directory}/bookshelf",
+            "db_filename": "_database.db",
+            "table_name": "docs",
+            "inbox_directory": "inbox",
+        }
+
+        # Then override settings using config file.
+        config_path = f"{home_directory}/.config/bookshelf/config.ini"
+
+        if os.path.exists(config_path):
+            config.read(config_path)
+
+        # Set member variables related to the configuration
+        # If the root directory begins with '~', replace it with full path.
+        self.root_dir = config["settings"]["root_directory"].replace(
+            "~", home_directory
+        )
+        self.db_filename = config["settings"]["db_filename"]
+        self.table_name = config["settings"]["table_name"]
+        self.inbox_dir = config["settings"]["inbox_directory"]
+
+        self.conn = sqlite3.connect(f"{self.root_dir}/{self.db_filename}")
+        self.cursor = self.conn.cursor()
+
+        self.cursor.execute(f"""CREATE TABLE IF NOT EXISTS {self.table_name} 
+        (id TEXT PRIMARY KEY, filename TEXT, title TEXT, authors TEXT,
+        category TEXT, keywords TEXT, description TEXT)""")
+        self.conn.commit()
+
+        mkdir(f"{self.root_dir}/{self.inbox_dir}")
+
     def __del__(self):
         # Close connection
         self.conn.close()
+
+    def show_config(self):
+        print(
+            "--------------------------------------------------------------------------------"
+        )
+        print(f"{self.icon_info}  Current Configurations")
+        print(f" - Root directory: {self.root_dir}")
+        print(f" - DB file name: {self.db_filename}")
+        print(f" - Table name: {self.table_name}")
+        print(f" - Inbox directory: {self.inbox_dir}")
 
     def show_banner(self):
         print(
@@ -142,13 +173,15 @@ class Bookshelf:
             print("")
             print("MAIN menu")
             answer = closed_ended_question(
-                msg=f"{self.icon_keyboard}  (a)dd, (s)earch, or (q)uit",
-                options=["a", "s", "q"],
+                msg=f"{self.icon_keyboard}  (a)dd, (s)earch, show (c)onfig, or (q)uit",
+                options=["a", "s", "c", "q"],
             )
             if answer == "a":
                 self.add_interactive()
             elif answer == "s":
                 self.search_interactive()
+            elif answer == "c":
+                self.show_config()
             elif answer == "q":
                 return
 
@@ -234,7 +267,9 @@ class Bookshelf:
         name_without_extension, extension = os.path.splitext(filename)
         md.filename = (
             unique_filename(
-                self.root_dir + f"/{md.category}", name_without_extension, extension
+                self.root_dir + f"/{md.category}",
+                name_without_extension,
+                extension,
             )
             + f"{extension}"
         )
