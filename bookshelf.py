@@ -170,21 +170,26 @@ class Bookshelf:
         )
 
     def show_main_menu(self):
-        while True:
+        try:
+            while True:
+                print("")
+                print("MAIN menu")
+                answer = closed_ended_question(
+                    msg=f"{self.icon_keyboard}  (a)dd, (s)earch, show (c)onfig, or (q)uit",
+                    options=["a", "s", "c", "q"],
+                )
+                if answer == "a":
+                    self.add_interactive()
+                elif answer == "s":
+                    self.search_interactive()
+                elif answer == "c":
+                    self.show_config()
+                elif answer == "q":
+                    return
+
+        except KeyboardInterrupt:
             print("")
-            print("MAIN menu")
-            answer = closed_ended_question(
-                msg=f"{self.icon_keyboard}  (a)dd, (s)earch, show (c)onfig, or (q)uit",
-                options=["a", "s", "c", "q"],
-            )
-            if answer == "a":
-                self.add_interactive()
-            elif answer == "s":
-                self.search_interactive()
-            elif answer == "c":
-                self.show_config()
-            elif answer == "q":
-                return
+            return
 
     def add_interactive(self):
         try:
