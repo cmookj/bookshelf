@@ -143,6 +143,8 @@ class Bookshelf:
 
         mkdir(f"{self.root_dir}/{self.inbox_dir}")
 
+        self.show_banner()
+
     def __del__(self):
         # Close connection
         self.conn.close()
@@ -168,7 +170,6 @@ class Bookshelf:
         )
 
     def show_main_menu(self):
-        self.show_banner()
         while True:
             print("")
             print("MAIN menu")
