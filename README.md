@@ -24,8 +24,12 @@ This tool keeps the following metadata of each document:
 
 When adding a new document, the software asks users to input the metadata above.
 Then it copies the document file into an appropriate sub-folder in the root-folder.
-It automatically manage the file hierarchy and manual movement of the sub-folders
-and files ruins the integrity of the database.
+It automatically manages the file hierarchy; each document is copied to a sub-folder
+which is named as the document's category.  If there exists another file with the
+same name, it appends ` (n)` to the name of the new file with an appropriate number
+`n` to avoid the duplication of the name.
+Note that manual movement or renaming of the sub-folders and files ruin the integrity
+of the database.
 
 When an entry is removed, the metadata of the related document is deleted from
 the database, and the document file is moved into `inbox` folder in the root-folder.
@@ -67,6 +71,7 @@ inbox_directory = inbox
 ### Interactive Mode: Search and Add
 
 ```shell
+❯ bookshelf.py
 ********************************************************************************
                               B O O K S H E L F
                           Where your documents reside
@@ -141,7 +146,7 @@ Bye-Bye!
 ### Quick Add
 
 ```shell
-❯ bookshelf -a "Medical Physics - 2009 - Badal - Monte Carlo simulation using a GPU.pdf"
+❯ bookshelf.py -a "Medical Physics - 2009 - Badal - Monte Carlo simulation using a GPU.pdf"
 ********************************************************************************
                               B O O K S H E L F
                           Where your documents reside
@@ -169,6 +174,58 @@ Bye-Bye!
 
 ### Quick Search 
 
+```shell
+❯ bookshelf.py -s "Monte Carlo"
+********************************************************************************
+                              B O O K S H E L F
+                          Where your documents reside
+********************************************************************************
+
+--------------------------------------------------------------------------------
+  Records found with: monte carlo
+--------------------------------------------------------------------------------
+[1] paper/Medical Physics - 2009 - Badal - Monte Carlo simulation using a GPU.pdf
+[2] paper/ISBI - 2012 - Badal - Binary tree voxel geometry to reduce memory footprint.pdf
+--------------------------------------------------------------------------------
+  Index for more detail, or Ctrl-C to cancel: 1
+  Info
+    Filename: Medical Physics - 2009 - Badal - Monte Carlo simulation using a GPU.pdf
+       Title: Accelerating Monte Carlo Simulations of Photon Transport in a Voxelized Geometry Using a Massively Parallel Graphics Processing Unit
+     Authors: Andreu Badal, Aldo Badano
+    Category: paper
+    Keywords: monte_carlo_simulation, gpu, photon_transport
+ Description: Utilization of GPU to accelerate Monte Carlo simulation of photon transport.
+  (o)pen, (e)dit, (d)elete, or Ctrl-C to cancel: ^C
+
+--------------------------------------------------------------------------------
+  Records found with: monte carlo
+--------------------------------------------------------------------------------
+[1] paper/Medical Physics - 2009 - Badal - Monte Carlo simulation using a GPU.pdf
+[2] paper/ISBI - 2012 - Badal - Binary tree voxel geometry to reduce memory footprint.pdf
+--------------------------------------------------------------------------------
+  Index for more detail, or Ctrl-C to cancel: 2
+  Info
+    Filename: ISBI - 2012 - Badal - Binary tree voxel geometry to reduce memory footprint.pdf
+       Title: A GPU-Optimized Binary Space Partition Structure to Accelerate The Monte Carlo Simulation of CT Projections of Voxelized Patient Models with Metal Implants
+     Authors: Andreu Badal, Aldo Badano
+    Category: paper
+    Keywords: gpu, binary_space_partition, monte_carlo_simulation, photon_projection, metal_implant
+ Description: Fast Monte Carlo simulation of photon projections on patient models with metal implants using binary space partition.
+  (o)pen, (e)dit, (d)elete, or Ctrl-C to cancel: ^C
+
+--------------------------------------------------------------------------------
+  Records found with: monte carlo
+--------------------------------------------------------------------------------
+[1] paper/Medical Physics - 2009 - Badal - Monte Carlo simulation using a GPU.pdf
+[2] paper/ISBI - 2012 - Badal - Binary tree voxel geometry to reduce memory footprint.pdf
+--------------------------------------------------------------------------------
+  Index for more detail, or Ctrl-C to cancel: ^C
+
+MAIN menu
+  (a)dd, (s)earch, show (c)onfig, or (q)uit: q
+
+Bye-Bye!
+```
 ## TODO
 
 * Test under Linux environment
