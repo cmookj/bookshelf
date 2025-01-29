@@ -185,6 +185,9 @@ class Bookshelf:
                 elif answer == "c":
                     self.show_config()
                 elif answer == "q":
+                    print("")
+                    print("Bye-Bye!")
+                    print("")
                     return
 
         except KeyboardInterrupt:
@@ -488,9 +491,6 @@ class Bookshelf:
 def interactive_main():
     bookshelf = Bookshelf()
     bookshelf.show_main_menu()
-    print("")
-    print("Bye-Bye!")
-    print("")
 
 
 def add_document(filename):
