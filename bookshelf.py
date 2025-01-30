@@ -1,13 +1,20 @@
 #!/usr/bin/env python3
 
+
 import configparser
 import os
+import readline
 import shutil
 import sqlite3
 import subprocess
 import sys
 import uuid
 from dataclasses import dataclass
+from prompt_toolkit import prompt
+
+# Enable history (optional)
+readline.parse_and_bind("tab: complete")  # Enable tab completion
+readline.parse_and_bind("set editing-mode vi")  # Enable Vi mode (optional)
 
 
 # ------------------------------------------------------------------------------
@@ -20,12 +27,12 @@ from dataclasses import dataclass
 # default answer.
 # This function returns the key input as lower case letter.
 def closed_ended_question(msg: str, options=["y", "n"], set_default=False):
-    prompt = msg + (f" [{options[0]}]: " if set_default else ": ")
+    question = msg + (f" [{options[0]}]: " if set_default else ": ")
     options[:] = [option.lower() for option in options]
     option_str = ", ".join(options)
 
     while True:
-        answer = input(prompt).lower()
+        answer = input(question).lower()
         if answer in options:
             return answer
 
@@ -34,7 +41,7 @@ def closed_ended_question(msg: str, options=["y", "n"], set_default=False):
 
 def string_input(msg: str, default_str: str, prohibited=[]):
     while True:
-        input_str = input(msg + f" [{default_str}]: ")
+        input_str = prompt(f"{msg}: ", default=default_str)
         if input_str in prohibited:
             print("\uea87  Invalid (prohibited) input data")
             continue
@@ -235,6 +242,7 @@ class Bookshelf:
         while not done:
             categories = self.get_categories()
 
+            print(f"{self.icon_info}  Edit metadata")
             input_title = string_input("Title", input_title)
             input_authors = string_input("Authors", input_authors)
             input_category = string_input(

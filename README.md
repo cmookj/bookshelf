@@ -7,7 +7,9 @@ This tool is being developed for my private use, and tested on macOS only.
 
 ## Dependency
 
-This software needs one of the [Nerd Fonts](https://www.nerdfonts.com).
+* One of the [Nerd Fonts](https://www.nerdfonts.com).
+* Python modules:
+    - `prompt_toolkit`
 
 ## Metadata
 
