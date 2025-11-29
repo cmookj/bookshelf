@@ -94,6 +94,25 @@ def unique_filename(dir: str, filename: str, ext: str) -> str:
     return filename + f" ({counter})"
 
 
+# Rename a file with a uuid
+# This function generates a uuid and renames the file.
+def rename_with_uuid(filepath):
+    # Split into directory, filename, and extension
+    directory, filename = os.path.split(filepath)
+    name, ext = os.path.splitext(filename)
+
+    # Generate new name
+    new_name = f"{uuid.uuid4()}{ext}"
+
+    # Construct full new path
+    new_path = os.path.join(directory, new_name)
+
+    # Rename file
+    os.rename(filepath, new_path)
+
+    return new_path
+
+
 # DataClass: Metadata ----------------------------------------------------------
 @dataclass
 class Metadata:
@@ -123,6 +142,7 @@ class Bookshelf:
             "db_filename": "_database.db",
             "table_name": "docs",
             "inbox_directory": "inbox",
+            "files_directory": "files",
         }
 
         # Then override settings using config file.
@@ -139,16 +159,20 @@ class Bookshelf:
         self.db_filename = config["settings"]["db_filename"]
         self.table_name = config["settings"]["table_name"]
         self.inbox_dir = config["settings"]["inbox_directory"]
+        self.files_dir = config["settings"]["files_directory"]
+
+        # Create directories
+        mkdir(self.root_dir)
+        mkdir(os.path.join(self.root_dir, self.inbox_dir))
+        mkdir(os.path.join(self.root_dir, self.files_dir))
 
         self.conn = sqlite3.connect(f"{self.root_dir}/{self.db_filename}")
         self.cursor = self.conn.cursor()
 
-        self.cursor.execute(f"""CREATE TABLE IF NOT EXISTS {self.table_name} 
+        self.cursor.execute(f"""CREATE TABLE IF NOT EXISTS {self.table_name}
         (id TEXT PRIMARY KEY, filename TEXT, title TEXT, authors TEXT,
         category TEXT, keywords TEXT, description TEXT)""")
         self.conn.commit()
-
-        mkdir(f"{self.root_dir}/{self.inbox_dir}")
 
         self.show_banner()
 
@@ -165,6 +189,7 @@ class Bookshelf:
         print(f" - DB file name: {self.db_filename}")
         print(f" - Table name: {self.table_name}")
         print(f" - Inbox directory: {self.inbox_dir}")
+        print(f" - Files directory: {self.files_dir}")
 
     def show_banner(self):
         print(
@@ -240,14 +265,13 @@ class Bookshelf:
         input_description = field_list[4]
 
         while not done:
-            categories = self.get_categories()
+            # categories = self.get_categories()
 
             print(f"{self.icon_info}  Edit metadata")
             input_title = string_input("Title", input_title)
             input_authors = string_input("Authors", input_authors)
-            input_category = string_input(
-                f"Category - {categories}", input_category, ["inbox"]
-            )
+            input_category = string_input(f"Category", input_category)
+            # f"Category - {categories}", input_category, ["inbox"]
             input_keywords = string_input("Keywords", input_keywords)
             input_description = string_input("Description", input_description)
 
@@ -276,26 +300,30 @@ class Bookshelf:
 
     # Add a Document
     def add_document(self, filename):
-        md = self.get_metadata(filename)
-        categories = self.get_categories()
-        if md.category not in categories:
-            os.mkdir(self.root_dir + f"/{md.category}")
+        name_without_extension, ext = os.path.splitext(filename)
 
-        name_without_extension, extension = os.path.splitext(filename)
-        md.filename = (
-            unique_filename(
-                self.root_dir + f"/{md.category}",
-                name_without_extension,
-                extension,
-            )
-            + f"{extension}"
-        )
-        dst = self.root_dir + f"/{md.category}/" + md.filename
+        # Generate new name
+        new_name = f"{uuid.uuid4()}{ext}"
+
+        # Subdirectory name
+        sub_dir_name = new_name[0:2]
+
+        # If the subdirectory does not exist, create a new one.
+        sub_dir_path = os.path.join(self.root_dir, self.files_dir, sub_dir_name)
+        mkdir(sub_dir_path)
+
+        dst = os.path.join(sub_dir_path, new_name)
+        # Check for duplicate name (even though it is extremely rare)
+        if os.path.exists(dst):
+            print("[ERROR] File already exists.")
+            return
+
+        md = self.get_metadata(new_name)
         shutil.copy(filename, dst)
         self.register_document(md)
 
     def register_document(self, md):
-        unique_id = str(uuid.uuid4())
+        unique_id, _ = os.path.splitext(md.filename)
         self.cursor.execute(
             f"""INSERT INTO {self.table_name}
             (id, filename, title, authors, category, keywords, description)
@@ -348,7 +376,7 @@ class Bookshelf:
         file_counter = 1
         file_indices = []
         for result in search_results:
-            print(f"[{file_counter}] {result[4]}/{result[1]}")
+            print(f"[{file_counter}] {result[4]}: {result[2]}")
             file_indices = file_indices + [str(file_counter)]
             file_counter += 1
 
@@ -366,7 +394,8 @@ class Bookshelf:
                 )
                 if answer == "o":
                     record = self.get_record_with_id(identifier)
-                    self.open_document(self.root_dir + f"/{record[4]}/{record[1]}")
+                    sub_dir_name = record[1][0:2]
+                    self.open_document(os.path.join(self.root_dir, self.files_dir, sub_dir_name, record[1]))
                     return
                 elif answer == "e":
                     self.edit_record(identifier)
@@ -393,16 +422,17 @@ class Bookshelf:
     # Query Document
     def query_documents(self, keyword):
         self.cursor.execute(
-            f"""SELECT * FROM {self.table_name} WHERE 
-            title LIKE ? OR 
-            authors LIKE ? OR 
-            keywords LIKE ? OR 
+            f"""SELECT * FROM {self.table_name} WHERE
+            title LIKE ? OR
+            authors LIKE ? OR
+            keywords LIKE ? OR
             description LIKE ?""",
             (f"%{keyword}%", f"%{keyword}%", f"%{keyword}%", f"%{keyword}%"),
         )
         return self.cursor.fetchall()
 
     def get_record_with_id(self, identifier):
+        print(f"ID: {identifier}")
         self.cursor.execute(
             f"SELECT * FROM {self.table_name} WHERE id = ?;", (identifier,)
         )
@@ -429,8 +459,8 @@ class Bookshelf:
     # Remove Document from database and move to 'unclassified'
     def remove_document(self, identifier):
         record = self.get_record_with_id(identifier)
-        src = self.root_dir + f"/{record[4]}/{record[1]}"
-        dst = self.root_dir + f"/{self.inbox_dir}/{record[1]}"
+        src = os.path.join(self.root_dir, self.files_dir, record[0][0:2], record[1])
+        dst = os.path.join(self.root_dir, self.inbox_dir, record[1])
         print(f"SRC: {src}")
         print(f"DST: {dst}")
         shutil.move(src, dst)
