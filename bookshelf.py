@@ -146,7 +146,7 @@ class Bookshelf:
         }
 
         # Then override settings using config file.
-        config_path = f"{home_directory}/.config/bookshelf/config.ini"
+        config_path = os.path.join(home_directory, ".config/bookshelf/config.ini")
 
         if os.path.exists(config_path):
             config.read(config_path)
@@ -166,7 +166,7 @@ class Bookshelf:
         mkdir(os.path.join(self.root_dir, self.inbox_dir))
         mkdir(os.path.join(self.root_dir, self.files_dir))
 
-        self.conn = sqlite3.connect(f"{self.root_dir}/{self.db_filename}")
+        self.conn = sqlite3.connect(os.path.join(self.root_dir, self.db_filename))
         self.cursor = self.conn.cursor()
 
         self.cursor.execute(f"""CREATE TABLE IF NOT EXISTS {self.table_name}
@@ -218,7 +218,7 @@ class Bookshelf:
                     self.show_config()
                 elif answer == "q":
                     print("")
-                    print("Bye-Bye!")
+                    print("Good-Bye!")
                     print("")
                     return
 
@@ -265,13 +265,10 @@ class Bookshelf:
         input_description = field_list[4]
 
         while not done:
-            # categories = self.get_categories()
-
             print(f"{self.icon_info}  Edit metadata")
             input_title = string_input("Title", input_title)
             input_authors = string_input("Authors", input_authors)
-            input_category = string_input(f"Category", input_category)
-            # f"Category - {categories}", input_category, ["inbox"]
+            input_category = string_input("Category", input_category)
             input_keywords = string_input("Keywords", input_keywords)
             input_description = string_input("Description", input_description)
 
