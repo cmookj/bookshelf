@@ -133,8 +133,9 @@ class Bookshelf:
                 file_path = input(
                     f"{self.icon_keyboard}  File name, or Ctrl-C to cancel: "
                 )
-                if os.path.exists(file_path):
-                    self.add_document(file_path)
+                expanded_path = os.path.expanduser(file_path)
+                if os.path.exists(expanded_path):
+                    self.add_document(expanded_path)
                 else:
                     print(
                         util.make_bold_green(f"{self.icon_err}  No such file: {file_path}")
@@ -473,9 +474,9 @@ def main():
         return
 
     if sys.argv[1] == "add" or sys.argv[1] == "-a":
-        file_path = sys.argv[2]
+        file_path = os.path.expanduser(sys.argv[2])
         if os.path.exists(file_path):
-            add_document(sys.argv[2])
+            add_document(file_path)
 
     elif sys.argv[1] == "search" or sys.argv[1] == "-s":
         keyword = sys.argv[2]
