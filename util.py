@@ -1,5 +1,9 @@
 import os
+import re
+import sys
 import uuid
+from pathlib import Path
+from prompt_toolkit import prompt
 
 # ------------------------------------------------------------------------------
 #                                                              Utility routines
@@ -96,3 +100,75 @@ def rename_with_uuid(filepath):
 
     return new_path
 
+# Cross‑platform “sanitize” routine
+def make_safe_filename(name: str,
+                       replace_with: str = "_",
+                       max_len: int = 255) -> str:
+    """
+    Convert *name* into a filename that is safe on Windows, macOS and Linux.
+
+    Parameters
+    ----------
+    name:
+        Original string (e.g. a title, user input, URL fragment …).
+    replace_with:
+        Character used to replace each illegal symbol.  Defaults to “_”.
+    max_len:
+        Maximum length of the resulting filename (including extension).
+        Most filesystems limit a single component to 255 bytes.
+
+    Returns
+    -------
+    A sanitized string that can be used directly with ``open()``,
+    ``Path()`` or any other file‑API.
+
+    Notes
+    -----
+    * Removes characters that are illegal on any major platform:
+      ``\\ / : * ? " < > |`` and control characters (ASCII 0‑31).
+    * Strips leading/trailing whitespace and dots (problematic on Windows).
+    * Collapses consecutive replacement characters into a single one.
+    * Handles Windows‑reserved device names (CON, PRN, AUX, NUL, COM1‑9,
+      LPT1‑9) by prefixing an underscore.
+    * Truncates the result to *max_len* bytes, preserving the extension if
+      one is present.
+    """
+    # 1. Normalise Unicode (optional but helps with accented chars)
+    name = name.strip()
+    name = re.sub(r"\s+", "_", name)               # collapse whitespace
+
+    # 2. Replace illegal characters
+    illegal_chars = r'[<>:"/\\|?*\x00-\x1F]'       # includes control chars
+    name = re.sub(illegal_chars, replace_with, name)
+
+    # 3. Remove leading/trailing dots and spaces (Windows quirk)
+    name = name.strip(" .")
+
+    # 4. Collapse repeated replacement symbols (e.g. "__")
+    if replace_with:
+        name = re.sub(rf"{re.escape(replace_with)}+", replace_with, name)
+
+    # 5. Guard against Windows reserved device names
+    windows_reserved = {
+        "CON", "PRN", "AUX", "NUL",
+        *(f"COM{i}" for i in range(1, 10)),
+        *(f"LPT{i}" for i in range(1, 10)),
+    }
+    stem, *ext_parts = name.split(".")
+    if stem.upper() in windows_reserved:
+        stem = f"{replace_with}{stem}"
+    name = ".".join([stem] + ext_parts) if ext_parts else stem
+
+    # 6. Enforce length limit (most FS limit 255 bytes per component)
+    if len(name.encode(sys.getfilesystemencoding())) > max_len:
+        # Preserve extension if present
+        if "." in name:
+            stem, ext = name.rsplit(".", 1)
+            # Reserve space for dot + extension
+            allowed = max_len - len(ext) - 1
+            stem = stem[:allowed]
+            name = f"{stem}.{ext}"
+        else:
+            name = name[:max_len]
+
+    return name

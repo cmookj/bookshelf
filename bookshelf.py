@@ -11,7 +11,6 @@ import sys
 import uuid
 import util
 from dataclasses import dataclass
-from prompt_toolkit import prompt
 
 # Enable history (optional)
 readline.parse_and_bind("tab: complete")  # Enable tab completion
@@ -138,7 +137,7 @@ class Bookshelf:
                     self.add_document(file_path)
                 else:
                     print(
-                        make_bold_green(f"{self.icon_err}  No such file: {file_path}")
+                        util.make_bold_green(f"{self.icon_err}  No such file: {file_path}")
                     )
 
         except KeyboardInterrupt:
@@ -166,11 +165,11 @@ class Bookshelf:
 
         while not done:
             print(f"{self.icon_info}  Edit metadata")
-            input_title = string_input("Title", input_title)
-            input_authors = string_input("Authors", input_authors)
-            input_category = string_input("Category", input_category)
-            input_keywords = string_input("Keywords", input_keywords)
-            input_description = string_input("Description", input_description)
+            input_title = util.string_input("Title", input_title)
+            input_authors = util.string_input("Authors", input_authors)
+            input_category = util.string_input("Category", input_category)
+            input_keywords = util.string_input("Keywords", input_keywords)
+            input_description = util.string_input("Description", input_description)
 
             print("")
             print(f"{self.icon_info}  Please verify your input")
@@ -243,7 +242,7 @@ class Bookshelf:
                 search_results = self.query_documents(keyword)
                 if len(search_results) == 0:
                     print(
-                        make_bold_green(f"{self.icon_err}  No matching records in db")
+                        util.make_bold_green(f"{self.icon_err}  No matching records in db")
                     )
                     return
 
@@ -286,11 +285,9 @@ class Bookshelf:
         record = self.get_record_with_id(identifier)
         sub_dir_name = record[1][0:2]
         src_path = os.path.join(self.root_dir, self.files_dir, sub_dir_name, record[1])
-        print(f"src: {src_path}")
         _, ext = os.path.splitext(record[1])
-        filename = record[2].replace(" ", "_") + ext
+        filename = util.make_safe_filename(record[2]) + ext
         dst_path = os.path.join(self.root_dir, self.inbox_dir, filename)
-        print(f"dst: {dst_path}")
         shutil.copy(src_path, dst_path)
 
     def open_file(self, identifier):
@@ -317,7 +314,7 @@ class Bookshelf:
                 elif answer == "d":
                     # For safety, get confirmation
                     confirm = input(
-                        make_bold_red(f"{self.icon_warn}  Please confirm with 'yes': ")
+                        util.make_bold_red(f"{self.icon_warn}  Please confirm with 'yes': ")
                     )
                     if confirm == "yes":
                         self.remove_document(identifier)
@@ -358,7 +355,7 @@ class Bookshelf:
         records = self.cursor.fetchall()
         if len(records) == 0:
             raise Exception(
-                make_bold_green(f"{self.icon_err}  No record with the identifier in db")
+                util.make_bold_green(f"{self.icon_err}  No record with the identifier in db")
             )
 
         return records[0]
@@ -373,7 +370,7 @@ class Bookshelf:
             print(f"{self.icon_info}  Record deleted successfully")
 
         except sqlite3.Error as e:
-            print(make_bold_red(f"{self.icon_err}  Failed to delete record: {e}"))
+            print(util.make_bold_red(f"{self.icon_err}  Failed to delete record: {e}"))
 
     # Remove Document from database and move to 'unclassified'
     def remove_document(self, identifier):
@@ -439,7 +436,7 @@ class Bookshelf:
 
     # Get list of categories, i.e., sub-directories excluding the 'inbox'
     def get_categories(self):
-        categories = scandir(self.root_dir)
+        categories = util.scandir(self.root_dir)
         if self.inbox_dir in categories:
             categories.remove(self.inbox_dir)
         return categories
