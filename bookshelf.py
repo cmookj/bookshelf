@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
-
 import configparser
+import fuzzy
 import os
 import readline
 import shutil
@@ -76,6 +76,10 @@ class Bookshelf:
         (id TEXT PRIMARY KEY, filename TEXT, title TEXT, authors TEXT,
         category TEXT, keywords TEXT, description TEXT)""")
         self.conn.commit()
+
+        # Setup FTS table
+        fuzzy.setup_fts(os.path.join(self.root_dir, self.db_filename), self.table_name)
+        fuzzy.setup_fts_triggers(os.path.join(self.root_dir, self.db_filename), self.table_name)
 
         self.show_banner()
 
@@ -238,16 +242,17 @@ class Bookshelf:
         self.conn.commit()
 
     def search_documents(self, keyword):
+        fuzzy_search = False
         try:
             while True:
-                search_results = self.query_documents(keyword)
+                search_results = self.query_documents(keyword, fuzzy_search)
                 if len(search_results) == 0:
                     print(
                         util.make_bold_green(f"{self.icon_err}  No matching records in db")
                     )
                     return
 
-                file_indices = self.print_search_result(keyword, search_results)
+                file_indices = self.print_search_result(keyword, search_results, fuzzy_search)
                 file_index = util.closed_ended_question(
                     f"{self.icon_keyboard}  Index for more detail, or Ctrl-C to cancel",
                     file_indices,
@@ -260,7 +265,7 @@ class Bookshelf:
             print("")
             return
 
-    def print_search_result(self, keyword, search_results):
+    def print_search_result(self, keyword, search_results, fuzzy_search):
         print("")
         print(
             "--------------------------------------------------------------------------------"
@@ -273,7 +278,10 @@ class Bookshelf:
         file_counter = 1
         file_indices = []
         for result in search_results:
-            print(f"[{file_counter}] {result[4]}: {result[2]}")
+            if fuzzy_search == True:
+                print(f"[{file_counter}] {result[2]}")
+            else:
+                print(f"[{file_counter}] {result[4]}: {result[2]}")
             file_indices = file_indices + [str(file_counter)]
             file_counter += 1
 
@@ -337,7 +345,12 @@ class Bookshelf:
             return
 
     # Query Document
-    def query_documents(self, keyword):
+    def query_documents(self, keyword, fuzzy_search):
+        if fuzzy_search == True:
+            return fuzzy.fuzzy_search_fts(os.path.join(self.root_dir, self.db_filename),
+                                          self.table_name,
+                                          keyword)
+
         self.cursor.execute(
             f"""SELECT * FROM {self.table_name} WHERE
             title LIKE ? OR

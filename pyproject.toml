@@ -7,3 +7,6 @@ requires-python = ">=3.14"
 dependencies = [
     "prompt-toolkit>=3.0.52",
 ]
+
+[project.scripts]
+bshelf = "bookshelf:main"
