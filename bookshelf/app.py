@@ -110,8 +110,8 @@ class Bookshelf:
                 print("")
                 print("MAIN menu")
                 answer = bookshelf.util.closed_ended_question(
-                    msg=f"{self.icon_keyboard}  (a)dd, (s)earch, show (c)onfig, or (q)uit",
-                    options=["a", "s", "c", "q"],
+                    msg=f"{self.icon_keyboard}  (a)dd, (s)earch, show (c)onfig, (h)elp, or (q)uit",
+                    options=["a", "s", "c", "h", "q"],
                 )
                 if answer == "a":
                     self.add_interactive()
@@ -119,6 +119,8 @@ class Bookshelf:
                     self.search_interactive()
                 elif answer == "c":
                     self.show_config()
+                elif answer == "h":
+                    self.print_help_main_menu()
                 elif answer == "q":
                     print("")
                     print("Good-Bye!")
@@ -128,6 +130,14 @@ class Bookshelf:
         except KeyboardInterrupt:
             print("")
             return
+
+    def print_help_main_menu(self):
+        print("""
+Add         - add a new document to the bookshelf database
+Search      - search documents using a keyword
+Show config - show current configuration of bookshelf
+Quit        - quit bookshelf and exit
+        """)
 
     def add_interactive(self):
         try:
@@ -308,8 +318,8 @@ class Bookshelf:
         try:
             while True:
                 answer = bookshelf.util.closed_ended_question(
-                    msg=f"{self.icon_keyboard}  (o)pen, (e)dit, (d)elete, (c)opy file to inbox, or Ctrl-C to cancel",
-                    options=["o", "e", "d", "c"],
+                    msg=f"{self.icon_keyboard}  (o)pen, (e)dit, (d)elete, (c)opy file to inbox, (h)elp, or Ctrl-C to cancel",
+                    options=["o", "e", "d", "c", "h"],
                 )
 
                 if answer == "o":
@@ -338,11 +348,22 @@ class Bookshelf:
                     self.copy_file_to_inbox_named_as_title(identifier)
                     return
 
+                elif answer == "h":
+                    self.print_help_command_for_record()
+
                 else:
                     continue
         except KeyboardInterrupt:
             print("")
             return
+
+    def print_help_command_for_record(self):
+        print("""
+Open               - open the file with a viewer
+Edit               - edit the metadata of the record
+Delete             - delete the record and move the file to inbox
+Copy file to inbox - copy the file to inbox
+        """)
 
     # Query Document
     def query_documents(self, keyword, fuzzy_search):
