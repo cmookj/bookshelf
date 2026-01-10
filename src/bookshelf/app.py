@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
 
-import bookshelf.fuzzy
-import bookshelf.util
 import configparser
 import os
 import readline
@@ -12,9 +10,13 @@ import sys
 import uuid
 from dataclasses import dataclass
 
+import bookshelf.fuzzy
+import bookshelf.util
+
 # Enable history (optional)
 readline.parse_and_bind("tab: complete")  # Enable tab completion
 readline.parse_and_bind("set editing-mode vi")  # Enable Vi mode (optional)
+
 
 # DataClass: Metadata ----------------------------------------------------------
 @dataclass
@@ -57,7 +59,7 @@ class Bookshelf:
         # Set member variables related to the configuration
         # If the root directory begins with '~', replace it with full path.
         # However, if the root directory is set to 'icloud', do not apply this rule.
-        if config["settings"]["root_directory"].lower() == 'icloud':
+        if config["settings"]["root_directory"].lower() == "icloud":
             self.root_dir = f"{home_directory}/Library/Mobile Documents/com~apple~CloudDocs/bookshelf"
         else:
             self.root_dir = config["settings"]["root_directory"].replace(
@@ -82,8 +84,12 @@ class Bookshelf:
         self.conn.commit()
 
         # Setup FTS table
-        bookshelf.fuzzy.setup_fts(os.path.join(self.root_dir, self.db_filename), self.table_name)
-        bookshelf.fuzzy.setup_fts_triggers(os.path.join(self.root_dir, self.db_filename), self.table_name)
+        bookshelf.fuzzy.setup_fts(
+            os.path.join(self.root_dir, self.db_filename), self.table_name
+        )
+        bookshelf.fuzzy.setup_fts_triggers(
+            os.path.join(self.root_dir, self.db_filename), self.table_name
+        )
 
         self.show_banner()
 
@@ -156,7 +162,9 @@ Quit        - quit bookshelf and exit
                     self.add_document(expanded_path)
                 else:
                     print(
-                        bookshelf.util.make_bold_green(f"{self.icon_err}  No such file: {file_path}")
+                        bookshelf.util.make_bold_green(
+                            f"{self.icon_err}  No such file: {file_path}"
+                        )
                     )
 
         except KeyboardInterrupt:
@@ -188,7 +196,9 @@ Quit        - quit bookshelf and exit
             input_authors = bookshelf.util.string_input("Authors", input_authors)
             input_category = bookshelf.util.string_input("Category", input_category)
             input_keywords = bookshelf.util.string_input("Keywords", input_keywords)
-            input_description = bookshelf.util.string_input("Description", input_description)
+            input_description = bookshelf.util.string_input(
+                "Description", input_description
+            )
 
             print("")
             print(f"{self.icon_info}  Please verify your input")
@@ -262,11 +272,15 @@ Quit        - quit bookshelf and exit
                 search_results = self.query_documents(keyword, fuzzy_search)
                 if len(search_results) == 0:
                     print(
-                        bookshelf.util.make_bold_green(f"{self.icon_err}  No matching records in db")
+                        bookshelf.util.make_bold_green(
+                            f"{self.icon_err}  No matching records in db"
+                        )
                     )
                     return
 
-                file_indices = self.print_search_result(keyword, search_results, fuzzy_search)
+                file_indices = self.print_search_result(
+                    keyword, search_results, fuzzy_search
+                )
                 file_index = bookshelf.util.closed_ended_question(
                     f"{self.icon_keyboard}  Index for more detail, or Ctrl-C to cancel",
                     file_indices,
@@ -316,7 +330,9 @@ Quit        - quit bookshelf and exit
     def open_file(self, identifier):
         record = self.get_record_with_id(identifier)
         sub_dir_name = record[1][0:2]
-        self.open_document(os.path.join(self.root_dir, self.files_dir, sub_dir_name, record[1]))
+        self.open_document(
+            os.path.join(self.root_dir, self.files_dir, sub_dir_name, record[1])
+        )
 
     def get_command_for_record(self, identifier):
         try:
@@ -337,7 +353,9 @@ Quit        - quit bookshelf and exit
                 elif answer == "d":
                     # For safety, get confirmation
                     confirm = input(
-                        bookshelf.util.make_bold_red(f"{self.icon_warn}  Please confirm with 'yes': ")
+                        bookshelf.util.make_bold_red(
+                            f"{self.icon_warn}  Please confirm with 'yes': "
+                        )
                     )
                     if confirm == "yes":
                         self.remove_document(identifier)
@@ -372,9 +390,9 @@ Copy file to inbox - copy the file to inbox
     # Query Document
     def query_documents(self, keyword, fuzzy_search):
         if fuzzy_search == True:
-            return bookshelf.fuzzy.fuzzy_search_fts(os.path.join(self.root_dir, self.db_filename),
-                                          self.table_name,
-                                          keyword)
+            return bookshelf.fuzzy.fuzzy_search_fts(
+                os.path.join(self.root_dir, self.db_filename), self.table_name, keyword
+            )
 
         self.cursor.execute(
             f"""SELECT * FROM {self.table_name} WHERE
@@ -394,7 +412,9 @@ Copy file to inbox - copy the file to inbox
         records = self.cursor.fetchall()
         if len(records) == 0:
             raise Exception(
-                bookshelf.util.make_bold_green(f"{self.icon_err}  No record with the identifier in db")
+                bookshelf.util.make_bold_green(
+                    f"{self.icon_err}  No record with the identifier in db"
+                )
             )
 
         return records[0]
@@ -409,7 +429,11 @@ Copy file to inbox - copy the file to inbox
             print(f"{self.icon_info}  Record deleted successfully")
 
         except sqlite3.Error as e:
-            print(bookshelf.util.make_bold_red(f"{self.icon_err}  Failed to delete record: {e}"))
+            print(
+                bookshelf.util.make_bold_red(
+                    f"{self.icon_err}  Failed to delete record: {e}"
+                )
+            )
 
     # Remove Document from database and move to 'unclassified'
     def remove_document(self, identifier):
@@ -506,7 +530,7 @@ def print_usage():
     print("  For help:             bookshelf help (or -h)")
 
 
-def main():
+def main() -> None:
     if len(sys.argv) == 1:
         interactive_main()
         return
