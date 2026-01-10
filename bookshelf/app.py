@@ -56,9 +56,13 @@ class Bookshelf:
 
         # Set member variables related to the configuration
         # If the root directory begins with '~', replace it with full path.
-        self.root_dir = config["settings"]["root_directory"].replace(
-            "~", home_directory
-        )
+        # However, if the root directory is set to 'icloud', do not apply this rule.
+        if config["settings"]["root_directory"].lower() == 'icloud':
+            self.root_dir = f"{home_directory}/Library/Mobile Documents/com~apple~CloudDocs/bookshelf"
+        else:
+            self.root_dir = config["settings"]["root_directory"].replace(
+                "~", home_directory
+            )
         self.db_filename = config["settings"]["db_filename"]
         self.table_name = config["settings"]["table_name"]
         self.inbox_dir = config["settings"]["inbox_directory"]
