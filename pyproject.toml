@@ -11,6 +11,8 @@ requires-python = ">=3.9"
 
 dependencies = [
     "prompt-toolkit>=3.0.52",
+    "pytest",
+    "pypdf"
 ]
 
 [project.scripts]
