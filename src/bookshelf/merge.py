@@ -60,6 +60,7 @@ except ImportError:
     _pypdf = None           # type: ignore[assignment]
     _PYPDF_AVAILABLE = False
 
+import logging as _logging
 
 # ---------------------------------------------------------------------------
 # Constants & tuneable defaults
@@ -413,6 +414,7 @@ def _pdf_text(path: str) -> Optional[str]:
     if not path.lower().endswith(".pdf"):
         return None
     try:
+        _logging.getLogger("pypdf").setLevel(_logging.ERROR)
         reader = _pypdf.PdfReader(path)
         pages  = (page.extract_text() or "" for page in reader.pages)
         text   = " ".join(pages)
@@ -1004,7 +1006,7 @@ def _build_parser() -> argparse.ArgumentParser:
                    help="Full path to the secondary SQLite DB file")
     p.add_argument("--secondary-files",  required=True,
                    help="Full path to the secondary 'files' directory")
-    p.add_argument("--table",            default="docs",
+    p.add_argument("--table",            default="documents",
                    help="Table name used in both databases")
     p.add_argument("--high-threshold",   type=float,
                    default=HIGH_THRESHOLD_DEFAULT,
