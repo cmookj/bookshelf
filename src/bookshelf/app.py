@@ -527,6 +527,12 @@ def print_usage():
     print("  For interactive mode: bookshelf")
     print("  For quick addition:   bookshelf add (or -a) file_name")
     print("  For quick search:     bookshelf search (or -s) keyword")
+    print("  For merge (dry-run):  bookshelf merge \ ")
+    print("                        --primary-db ~/bookshelf/_database.db \ ")
+    print("                        --primary-files ~/bookshelf/files \ ")
+    print("                        --secondary-db ~/other/_database.db \ ")
+    print("                        --secondary-files ~/other/files \ ")
+    print("                        --dry-run ")
     print("  For help:             bookshelf help (or -h)")
 
 
@@ -544,6 +550,10 @@ def main() -> None:
         keyword = sys.argv[2]
         if len(keyword) > 0:
             search_documents(keyword.lower())
+
+    elif sys.argv[1] == "merge":
+        from bookshelf.merge import run_merge_cli
+        run_merge_cli(sys.argv[2:])
 
     elif sys.argv[1] == "help" or sys.argv[1] == "-h":
         print_usage()
