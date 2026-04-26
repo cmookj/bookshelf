@@ -2,12 +2,29 @@ import os
 import re
 import sys
 import uuid
+import textwrap
 from pathlib import Path
 from prompt_toolkit import prompt
 
 # ------------------------------------------------------------------------------
 #                                                              Utility routines
 # ------------------------------------------------------------------------------
+
+# Get the width of the current terminal window
+def get_terminal_width():
+    return os.get_terminal_size().columns
+
+# Print horizontal line across screen (up to 80 columns)
+def print_horizontal_line(char: str):
+    desired_width = min(80, get_terminal_width())
+    print(char[0] * desired_width)
+
+
+# Print text to fit current terminal window (up to 80 columns)
+def print_wrapped(paragraph: str, max_width: int = 80):
+    desired_width = min(max_width, get_terminal_width())
+    wrapped_text = textwrap.fill(paragraph, width=desired_width)
+    print(wrapped_text)
 
 
 # This function shows a prompt expecting a single character input as the answer.

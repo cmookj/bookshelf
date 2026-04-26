@@ -98,9 +98,9 @@ class Bookshelf:
         self.conn.close()
 
     def show_config(self):
-        print(
-            "--------------------------------------------------------------------------------"
-        )
+        # desired_width = min(80, bookshelf.util.get_terminal_width())
+        # print("-" * desired_width)
+        bookshelf.util.print_horizontal_line("-")
         print(f"{self.icon_info}  Current Configurations")
         print(f" - Root directory: {self.root_dir}")
         print(f" - DB file name: {self.db_filename}")
@@ -109,10 +109,11 @@ class Bookshelf:
         print(f" - Files directory: {self.files_dir}")
 
     def show_banner(self):
-        print("*" * 80)
-        print("{:^80}".format("B O O K S H E L F"))
-        print("{:^80}".format("Where your documents reside"))
-        print("*" * 80)
+        desired_width = min(80, bookshelf.util.get_terminal_width())
+        print("*" * desired_width)
+        print("{:^{}}".format("B O O K S H E L F", desired_width))
+        print("{:^{}}".format("Where your documents reside", desired_width))
+        print("*" * desired_width)
 
     def show_main_menu(self):
         try:
@@ -201,13 +202,13 @@ Quit        - quit bookshelf and exit
             )
 
             print("")
-            print(f"{self.icon_info}  Please verify your input")
-            print(f"    Filename: {filename}")
-            print(f"       Title: {input_title}")
-            print(f"     Authors: {input_authors}")
-            print(f"    Category: {input_category}")
-            print(f"    Keywords: {input_keywords}")
-            print(f" Description: {input_description}")
+            bookshelf.util.print_wrapped(f"{self.icon_info}  Please verify your input")
+            bookshelf.util.print_wrapped(f"    Filename: {filename}")
+            bookshelf.util.print_wrapped(f"       Title: {input_title}")
+            bookshelf.util.print_wrapped(f"     Authors: {input_authors}")
+            bookshelf.util.print_wrapped(f"    Category: {input_category}")
+            bookshelf.util.print_wrapped(f"    Keywords: {input_keywords}")
+            bookshelf.util.print_wrapped(f" Description: {input_description}")
 
             if (
                 bookshelf.util.closed_ended_question(
@@ -295,13 +296,9 @@ Quit        - quit bookshelf and exit
 
     def print_search_result(self, keyword, search_results, fuzzy_search):
         print("")
-        print(
-            "--------------------------------------------------------------------------------"
-        )
+        bookshelf.util.print_horizontal_line("-")
         print(f"{self.icon_info}  Records found with: {keyword}")
-        print(
-            "--------------------------------------------------------------------------------"
-        )
+        bookshelf.util.print_horizontal_line("-")
 
         file_counter = 1
         file_indices = []
@@ -313,9 +310,7 @@ Quit        - quit bookshelf and exit
             file_indices = file_indices + [str(file_counter)]
             file_counter += 1
 
-        print(
-            "--------------------------------------------------------------------------------"
-        )
+        bookshelf.util.print_horizontal_line("-")
         return file_indices
 
     def copy_file_to_inbox_named_as_title(self, identifier):
@@ -475,13 +470,13 @@ Copy file to inbox - copy the file to inbox
     # Show info
     def show_info(self, identifier):
         record = self.get_record_with_id(identifier)
-        print(f"{self.icon_info}  Info")
-        print(f"    Filename: {record[1]}")
-        print(f"       Title: {record[2]}")
-        print(f"     Authors: {record[3]}")
-        print(f"    Category: {record[4]}")
-        print(f"    Keywords: {record[5]}")
-        print(f" Description: {record[6]}")
+        bookshelf.util.print_wrapped(f"{self.icon_info}  Info")
+        bookshelf.util.print_wrapped(f"    Filename: {record[1]}")
+        bookshelf.util.print_wrapped(f"       Title: {record[2]}")
+        bookshelf.util.print_wrapped(f"     Authors: {record[3]}")
+        bookshelf.util.print_wrapped(f"    Category: {record[4]}")
+        bookshelf.util.print_wrapped(f"    Keywords: {record[5]}")
+        bookshelf.util.print_wrapped(f" Description: {record[6]}")
 
     # Get metadata interactively
     def get_metadata(self, filename):
