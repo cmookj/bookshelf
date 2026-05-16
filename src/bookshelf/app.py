@@ -458,7 +458,7 @@ Copy file to inbox - copy the file to inbox
             dst = os.path.join(self.root_dir, self.files_dir, record[0][0:2], record[1])
             print(f"SRC: {src}")
             print(f"DST: {dst}")
-            shutil.move(src, dst)
+            shutil.copy(src, dst)
         else:
             print(
                 bookshelf.util.make_bold_green(
