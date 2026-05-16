@@ -333,8 +333,8 @@ Quit        - quit bookshelf and exit
         try:
             while True:
                 answer = bookshelf.util.closed_ended_question(
-                    msg=f"{self.icon_keyboard}  (o)pen, (e)dit, (d)elete, (c)opy file to inbox, (h)elp, or Ctrl-C to cancel",
-                    options=["o", "e", "d", "c", "h"],
+                    msg=f"{self.icon_keyboard}  (o)pen, (e)dit, (d)elete, (c)opy file to inbox, (r)eplace file, (h)elp, or Ctrl-C to cancel",
+                    options=["o", "e", "d", "c", "r", "h"],
                 )
 
                 if answer == "o":
@@ -363,6 +363,10 @@ Quit        - quit bookshelf and exit
 
                 elif answer == "c":
                     self.copy_file_to_inbox_named_as_title(identifier)
+                    return
+
+                elif answer == "r":
+                    self.replace_file(identifier)
                     return
 
                 elif answer == "h":
@@ -440,6 +444,27 @@ Copy file to inbox - copy the file to inbox
         shutil.move(src, dst)
 
         self.remove_record(identifier)
+
+    # Replace existing file
+    def replace_file(self, identifier):
+        record = self.get_record_with_id(identifier)
+        old_filename = record[1]
+        file_path = input(
+            f"{self.icon_keyboard}  File name, or Ctrl-C to cancel: "
+        )
+        expanded_path = os.path.expanduser(file_path)
+        if os.path.exists(expanded_path):
+            src = expanded_path
+            dst = os.path.join(self.root_dir, self.files_dir, record[0][0:2], record[1])
+            print(f"SRC: {src}")
+            print(f"DST: {dst}")
+            shutil.move(src, dst)
+        else:
+            print(
+                bookshelf.util.make_bold_green(
+                    f"{self.icon_err}  No such file: {file_path}"
+                )
+            )
 
     # Open document
     def open_document(self, filename):
