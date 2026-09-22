@@ -11,6 +11,11 @@ This tool is being developed for my private use, and tested on macOS only.
 * Python modules:
     - `prompt_toolkit`
 
+## Installation
+
+* Make sure the python version (Homebrew'ed python preferred)
+* Run `install.sh`
+
 ## Metadata
 
 This tool keeps the following metadata of each document:
